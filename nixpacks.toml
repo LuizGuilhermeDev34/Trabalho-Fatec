@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["cd backend && mvn package -DskipTests -q"]
+
+[start]
+cmd = "java -jar backend/target/castrapet.jar"

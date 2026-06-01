@@ -9,7 +9,10 @@ import java.util.concurrent.Executors;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        int porta = Integer.parseInt(System.getenv().getOrDefault("SERVER_PORT", "8080"));
+        // Railway usa PORT, localmente usa SERVER_PORT, padrao 8080
+        String portaEnv = System.getenv("PORT") != null ? System.getenv("PORT")
+                        : System.getenv().getOrDefault("SERVER_PORT", "8080");
+        int porta = Integer.parseInt(portaEnv);
 
         HttpServer server = HttpServer.create(new InetSocketAddress(porta), 0);
 
