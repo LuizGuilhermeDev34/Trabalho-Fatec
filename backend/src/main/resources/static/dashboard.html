@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Dashboard</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* ── Navbar ── */
+        nav {
+            background: #1a2e4a !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2) !important;
+        }
+
+        .nav-brand { font-size: 20px; font-weight: 800; color: white; text-decoration: none; }
+        .nav-brand span { color: #00b89c; }
+
+        .nav-links { display: flex; align-items: center; gap: 2px; }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,.08); color: white; }
+
+        .nav-links a.nav-sair {
+            color: #f87171;
+            border: 1px solid rgba(248,113,113,.3);
+            margin-left: 4px;
+        }
+        .nav-links a.nav-sair:hover { background: rgba(248,113,113,.1); color: #fca5a5; }
+
+        .nav-divider { width: 1px; height: 22px; background: rgba(255,255,255,.12); margin: 0 10px; }
+
+        .nav-user { display: flex; align-items: center; gap: 10px; }
+        .nav-avatar {
+            width: 34px; height: 34px;
+            background: #00b89c;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800; color: white;
+            flex-shrink: 0;
+        }
+        .nav-user-info { line-height: 1.3; }
+        .nav-user-name { font-size: 13px; font-weight: 700; color: white; }
+        .nav-user-role { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+
+        /* ── Header de boas-vindas ── */
+        .dash-header {
+            background: linear-gradient(135deg, #1a2e4a 0%, #00b89c 100%);
+            padding: 36px 28px 60px;
+            color: white;
+        }
+        .dash-header h2 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .dash-header p  { font-size: 15px; opacity: .8; }
+
+        /* ── Body que sobe sobre o header ── */
+        .dash-body {
+            max-width: 960px;
+            margin: -36px auto 40px;
+            padding: 0 20px;
+        }
+
+        /* ── Cards de atalho ── */
+        .atalhos-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .atalho-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-decoration: none;
+            transition: transform .15s, box-shadow .15s;
+            border: 1px solid #e2e8f0;
+            display: block;
+        }
+        .atalho-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.12); }
+        .atalho-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 10px;
+        }
+        .atalho-card span { font-size: 13px; font-weight: 700; color: #1a2e4a; display: block; }
+        .atalho-card small { font-size: 11px; color: #94a3b8; margin-top: 2px; display: block; }
+
+        .ic-verde  { background: #e8fdf5; }
+        .ic-azul   { background: #eff6ff; }
+        .ic-roxo   { background: #f5f3ff; }
+        .ic-laranja{ background: #fff7ed; }
+
+        /* ── Cards de seção ── */
+        .secao-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            padding: 24px 26px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .secao-topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f0f4f8;
+        }
+        .secao-topo h2 { margin: 0; font-size: 16px; }
+        .secao-topo a  { font-size: 13px; color: #00b89c; font-weight: 700; text-decoration: none; }
+        .secao-topo a:hover { text-decoration: underline; }
+
+        /* Pet chips */
+        .pet-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pet-chip {
+            display: flex; align-items: center; gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 13px; font-weight: 600; color: #1a2e4a;
+            text-decoration: none;
+            transition: border-color .15s, background .15s;
+        }
+        .pet-chip:hover { border-color: #00b89c; background: #f0fdfb; }
+        .pet-chip .chip-icon { font-size: 18px; }
+        .pet-chip .chip-castrado { font-size: 10px; color: #94a3b8; margin-left: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar reorganizada -->
+<nav>
+    <a class="nav-brand" href="/dashboard.html">castra<span>Pet</span></a>
+
+    <div style="display:flex; align-items:center; gap:6px">
+        <!-- Links de navegação -->
+        <div class="nav-links">
+            <a href="/pets.html">Meus Pets</a>
+            <a href="/agendar.html">Agendar</a>
+            <a href="/admin.html" id="btnAdmin" style="display:none">Admin</a>
+        </div>
+
+        <!-- Separador -->
+        <div class="nav-divider"></div>
+
+        <!-- Usuário logado -->
+        <a class="nav-user" href="/perfil.html" style="text-decoration:none;cursor:pointer" title="Meu perfil">
+            <div class="nav-avatar" id="navAvatar">?</div>
+            <div class="nav-user-info">
+                <div class="nav-user-name" id="navNome">...</div>
+                <div class="nav-user-role" id="navRole"></div>
+            </div>
+        </a>
+
+        <div class="nav-divider"></div>
+        <div class="nav-links">
+            <a href="#" class="nav-sair" onclick="sair()">Sair</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Header de boas-vindas -->
+<div class="dash-header">
+    <h2 id="saudacao">Olá! 👋</h2>
+    <p>Bem-vindo ao CastraPet — gerencie seus pets e agendamentos</p>
+</div>
+
+<div class="dash-body">
+
+    <!-- Atalhos rápidos -->
+    <div class="atalhos-grid">
+        <a class="atalho-card" href="/pets.html">
+            <div class="atalho-icon ic-verde">🐾</div>
+            <span>Meus Pets</span>
+            <small>Cadastrar e editar</small>
+        </a>
+        <a class="atalho-card" href="/agendar.html">
+            <div class="atalho-icon ic-azul">📅</div>
+            <span>Agendar</span>
+            <small>Nova castração</small>
+        </a>
+        <a class="atalho-card" href="/agendamentos.html">
+            <div class="atalho-icon ic-roxo">📋</div>
+            <span>Agendamentos</span>
+            <small>Ver histórico</small>
+        </a>
+        <a class="atalho-card" href="/admin.html" id="atalhoAdmin" style="display:none">
+            <div class="atalho-icon ic-laranja">⚙️</div>
+            <span>Admin</span>
+            <small>Painel geral</small>
+        </a>
+    </div>
+
+    <!-- Meus Pets -->
+    <div class="secao-card">
+        <div class="secao-topo">
+            <h2>🐾 Meus Pets</h2>
+            <a href="/pets.html">Gerenciar todos →</a>
+        </div>
+        <div id="listaPets"><p class="empty">Carregando...</p></div>
+    </div>
+
+    <!-- Agendamentos -->
+    <div class="secao-card" id="agendamentos">
+        <div class="secao-topo">
+            <h2>📋 Meus Agendamentos</h2>
+            <a href="/agendar.html">Novo agendamento →</a>
+        </div>
+        <div id="listaAgendamentos"><p class="empty">Carregando...</p></div>
+    </div>
+
+</div>
+
+<script>
+    const token   = localStorage.getItem('token');
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!token) location.href = '/';
+
+    // Preenche navbar
+    const primeiroNome = (usuario.nome || '').split(' ')[0];
+    document.getElementById('saudacao').textContent = `Olá, ${primeiroNome}! 👋`;
+    document.getElementById('navNome').textContent   = usuario.nome || '';
+    document.getElementById('navRole').textContent   = usuario.role === 'ADMIN' ? 'Administrador' : usuario.role === 'VET' ? 'Veterinário' : 'Tutor';
+
+    // Avatar: foto ou inicial
+    const avatarEl  = document.getElementById('navAvatar');
+    const fotoPerfil = localStorage.getItem('fotoPerfil');
+    if (fotoPerfil) {
+        avatarEl.innerHTML = `<img src="${fotoPerfil}" style="width:34px;height:34px;border-radius:50%;object-fit:cover">`;
+    } else {
+        avatarEl.textContent = primeiroNome.charAt(0).toUpperCase();
+    }
+
+    if (usuario.role === 'ADMIN' || usuario.role === 'VET') {
+        document.getElementById('btnAdmin').style.display    = 'inline';
+        document.getElementById('atalhoAdmin').style.display = 'block';
+    }
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    async function api(url) {
+        const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        return r.json();
+    }
+
+    function badgeStatus(s) {
+        const cls = { PENDENTE:'pendente', CONFIRMADO:'confirmado', REALIZADO:'realizado', CANCELADO:'cancelado' };
+        return `<span class="badge badge-${cls[s]||''}">${s}</span>`;
+    }
+
+    async function cancelar(id) {
+        if (!confirm('Cancelar este agendamento?')) return;
+        const r = await fetch('/api/agendamentos/' + id + '/cancelar', {
+            method: 'PUT', headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (r.ok) carregarAgendamentos();
+        else { const d = await r.json(); alert(d.erro || 'Erro ao cancelar'); }
+    }
+
+    async function carregarPets() {
+        const pets = await api('/api/pets');
+        const el = document.getElementById('listaPets');
+        if (!pets.length) {
+            el.innerHTML = '<p class="empty">Nenhum pet cadastrado ainda. <a href="/pets.html" style="color:#00b89c;font-weight:700">Cadastrar agora</a></p>';
+            return;
+        }
+        el.innerHTML = `<div class="pet-chips">${pets.map(p => `
+            <a class="pet-chip" href="/pets.html">
+                <span class="chip-icon">${p.especie === 'CACHORRO' ? '🐶' : '🐱'}</span>
+                ${p.nome}
+                <span class="chip-castrado">${p.castrado ? '✅ castrado' : '⏳ não castrado'}</span>
+            </a>`).join('')}
+        </div>`;
+    }
+
+    async function carregarAgendamentos() {
+        const ags = await api('/api/agendamentos');
+        const el  = document.getElementById('listaAgendamentos');
+        if (!ags.length) {
+            el.innerHTML = '<p class="empty">Nenhum agendamento encontrado.</p>';
+            return;
+        }
+        el.innerHTML = `<table>
+            <thead><tr><th>Pet</th><th>Clínica</th><th>Data / Hora</th><th>Status</th><th>Ação</th></tr></thead>
+            <tbody>${ags.map(a => `<tr>
+                <td><strong>${a.petNome}</strong></td>
+                <td>${a.clinicaNome}</td>
+                <td>${new Date(a.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+                <td>${badgeStatus(a.status)}</td>
+                <td>${(a.status==='PENDENTE'||a.status==='CONFIRMADO')
+                    ? `<button class="btn btn-danger btn-sm" onclick="cancelar(${a.id})">Cancelar</button>`
+                    : '—'}</td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    carregarPets();
+    carregarAgendamentos();
+</script>
+</body>
+</html>

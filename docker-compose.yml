@@ -1,0 +1,100 @@
+version: '3.9'
+
+services:
+
+  # ─────────────────────────────
+  # Banco de dados PostgreSQL
+  # ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: castrapet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: castrapet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: castrapet@2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d castrapet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - castrapet-net
+
+  # ─────────────────────────────
+  # Backend Spring Boot (Java 17)
+  # ─────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: castrapet-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/castrapet
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: castrapet@2024
+      APP_JWT_SECRET: Q2FzdHJhUGV0U2VjcmV0S2V5UGFyYUpXVDIwMjRTZWN1cmUxMjM0NTY3ODkwQUJD
+      APP_JWT_EXPIRATION: 86400000
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:80,http://frontend
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+    networks:
+      - castrapet-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ─────────────────────────────
+  # Frontend (Nginx)
+  # ─────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: castrapet-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - castrapet-net
+
+  # ─────────────────────────────
+  # PgAdmin (opcional — UI do banco)
+  # ─────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: castrapet-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@castrapet.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - castrapet-net
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    name: castrapet-postgres-data
+
+networks:
+  castrapet-net:
+    name: castrapet-network
+    driver: bridge

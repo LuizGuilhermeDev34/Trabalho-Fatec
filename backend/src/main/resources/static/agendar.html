@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Agendar</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav>
+    <a href="/dashboard.html" class="logo" style="text-decoration:none;color:white">castra<span style="color:#00b89c">Pet</span></a>
+    <div>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/pets.html">Meus Pets</a>
+        <a href="#" onclick="sair()">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-voltar">Voltar</a>
+    <h1>Agendar Castracao</h1>
+    <div class="card">
+        <div id="alerta"></div>
+        <form id="formAgendar" onsubmit="return false">
+
+            <div class="form-group">
+                <label>1. Selecione o Pet *</label>
+                <select id="pet" data-drp required>
+                    <option value="">Carregando pets...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>2. Selecione a Clinica *</label>
+                <select id="clinica" data-drp required>
+                    <option value="">Carregando clinicas...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>3. Data desejada *</label>
+                <div style="display:grid;grid-template-columns:1fr 2fr 1.5fr;gap:8px">
+                    <select id="diaDat" data-drp>
+                        <option value="">Dia</option>
+                    </select>
+                    <select id="mesDat" data-drp>
+                        <option value="">Mes</option>
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Marco</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Maio</option>
+                        <option value="06">Junho</option>
+                        <option value="07">Julho</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                    <select id="anoDat" data-drp>
+                        <option value="">Ano</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>4. Horario disponivel *</label>
+                <select id="vaga" data-drp required>
+                    <option value="">Selecione a clinica e data primeiro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Observacoes</label>
+                <textarea id="observacoes" placeholder="Informacoes adicionais..."></textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="confirmar()">Confirmar Agendamento</button>
+        </form>
+    </div>
+</div>
+
+<script src="/dropdown.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) location.href = '/';
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    const selDia = document.getElementById('diaDat');
+    const selAno = document.getElementById('anoDat');
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+
+    for (let d = 1; d <= 31; d++) {
+        const o = document.createElement('option');
+        o.value = String(d).padStart(2, '0');
+        o.textContent = d;
+        selDia.appendChild(o);
+    }
+
+    const anoAtual = new Date().getFullYear();
+    for (let a = anoAtual; a <= anoAtual + 2; a++) {
+        const o = document.createElement('option');
+        o.value = a;
+        o.textContent = a;
+        selAno.appendChild(o);
+    }
+
+    CustomDropdown.initAll();
+
+    const drpPet     = document.getElementById('pet')._dropdown;
+    const drpClinica = document.getElementById('clinica')._dropdown;
+    const drpVaga    = document.getElementById('vaga')._dropdown;
+    const drpDia     = document.getElementById('diaDat')._dropdown;
+    const drpMes     = document.getElementById('mesDat')._dropdown;
+    const drpAno     = document.getElementById('anoDat')._dropdown;
+
+    drpDia.setValue(String(amanha.getDate()).padStart(2, '0'));
+    drpMes.setValue(String(amanha.getMonth() + 1).padStart(2, '0'));
+    drpAno.setValue(String(amanha.getFullYear()));
+
+    document.getElementById('clinica').addEventListener('change', carregarVagas);
+    document.getElementById('diaDat').addEventListener('change', carregarVagas);
+    document.getElementById('mesDat').addEventListener('change', carregarVagas);
+    document.getElementById('anoDat').addEventListener('change', carregarVagas);
+
+    function getDataSelecionada() {
+        const d = document.getElementById('diaDat').value;
+        const m = document.getElementById('mesDat').value;
+        const a = document.getElementById('anoDat').value;
+        return (d && m && a) ? `${a}-${m}-${d}` : null;
+    }
+
+    async function apiGet(url) {
+        const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        return r.json();
+    }
+
+    async function carregarPets() {
+        const pets = await apiGet('/api/pets');
+        const sel  = document.getElementById('pet');
+        const disponiveis = pets.filter(p => !p.castrado);
+
+        sel.innerHTML = disponiveis.length
+            ? '<option value="">Selecione um pet...</option>'
+            : '<option value="">Nenhum pet disponivel para castracao</option>';
+
+        disponiveis.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.nome} (${p.especie})`;
+            sel.appendChild(opt);
+        });
+        drpPet.refresh();
+    }
+
+    async function carregarClinicas() {
+        const clinicas = await apiGet('/api/clinicas');
+        const sel = document.getElementById('clinica');
+        sel.innerHTML = '<option value="">Selecione uma clinica...</option>';
+        clinicas.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.nome}${c.cidade ? ' — ' + c.cidade : ''}`;
+            sel.appendChild(opt);
+        });
+        drpClinica.refresh();
+    }
+
+    async function carregarVagas() {
+        const clinicaId = document.getElementById('clinica').value;
+        const data      = getDataSelecionada();
+        const sel       = document.getElementById('vaga');
+
+        if (!clinicaId || !data) {
+            sel.innerHTML = '<option value="">Selecione a clinica e data primeiro</option>';
+            drpVaga.refresh();
+            return;
+        }
+
+        sel.innerHTML = '<option value="">Carregando...</option>';
+        drpVaga.refresh();
+
+        const vagas = await apiGet(`/api/clinicas/${clinicaId}/vagas?data=${data}`);
+        sel.innerHTML = vagas.length
+            ? '<option value="">Selecione um horario...</option>'
+            : '<option value="">Sem vagas disponiveis nesta data</option>';
+
+        vagas.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.dataset.hora = `${data}T${v.horario}`;
+            opt.textContent  = `${v.horario} — ${v.vagasRestantes} vaga(s)`;
+            sel.appendChild(opt);
+        });
+        drpVaga.refresh();
+    }
+
+    async function confirmar() {
+        const alertaEl  = document.getElementById('alerta');
+        const petId     = document.getElementById('pet').value;
+        const clinicaId = document.getElementById('clinica').value;
+        const vagaId    = document.getElementById('vaga').value;
+        const vagaSel   = document.getElementById('vaga');
+        const dataHora  = vagaSel.options[vagaSel.selectedIndex]?.dataset?.hora;
+
+        if (!petId || !clinicaId || !vagaId || !dataHora) {
+            alertaEl.innerHTML = '<div class="alert alert-error">Preencha todos os campos obrigatorios.</div>';
+            return;
+        }
+
+        const r = await fetch('/api/agendamentos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({
+                petId: parseInt(petId),
+                clinicaId: parseInt(clinicaId),
+                vagaId: parseInt(vagaId),
+                dataHora,
+                observacoes: document.getElementById('observacoes').value || null
+            })
+        });
+        const resp = await r.json();
+        if (r.ok) {
+            alertaEl.innerHTML = '<div class="alert alert-success">Agendamento realizado com sucesso!</div>';
+            setTimeout(() => location.href = '/dashboard.html', 2000);
+        } else {
+            alertaEl.innerHTML = `<div class="alert alert-error">${resp.erro || 'Erro ao agendar'}</div>`;
+        }
+    }
+
+    carregarPets();
+    carregarClinicas();
+    carregarVagas();
+</script>
+</body>
+</html>

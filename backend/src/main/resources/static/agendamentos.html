@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Agendamentos</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .ag-card {
+            background: white;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            padding: 20px 22px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: box-shadow .15s;
+        }
+        .ag-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+        .ag-icone {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+            background: #f0fdfb;
+        }
+
+        .ag-info { flex: 1; min-width: 0; }
+        .ag-info .pet-nome  { font-size: 16px; font-weight: 700; color: #1a2e4a; margin-bottom: 2px; }
+        .ag-info .clinica   { font-size: 13px; color: #64748b; margin-bottom: 4px; }
+        .ag-info .data-hora { font-size: 13px; color: #94a3b8; }
+
+        .ag-direita { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .s-pendente   { background: #fef9c3; color: #854d0e; }
+        .s-confirmado { background: #dbeafe; color: #1e40af; }
+        .s-realizado  { background: #dcfce7; color: #166534; }
+        .s-cancelado  { background: #fee2e2; color: #991b1b; }
+
+        .btn-cancelar {
+            padding: 5px 14px;
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .btn-cancelar:hover { background: #fecaca; }
+
+        .filtros {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filtro-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .filtro-btn.ativo {
+            background: #1a2e4a;
+            border-color: #1a2e4a;
+            color: white;
+        }
+        .filtro-btn:hover:not(.ativo) { border-color: #00b89c; color: #00b89c; }
+
+        .topo-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .contador { font-size: 13px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/dashboard.html" class="logo" style="text-decoration:none;color:white">castra<span style="color:#00b89c">Pet</span></a>
+    <div>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/pets.html">Meus Pets</a>
+        <a href="/agendar.html">Agendar</a>
+        <a href="#" onclick="sair()">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-voltar">Voltar</a>
+    <h1>Historico de Agendamentos</h1>
+
+    <div class="filtros">
+        <button class="filtro-btn ativo" onclick="filtrar('TODOS', this)">Todos</button>
+        <button class="filtro-btn" onclick="filtrar('PENDENTE', this)">Pendentes</button>
+        <button class="filtro-btn" onclick="filtrar('CONFIRMADO', this)">Confirmados</button>
+        <button class="filtro-btn" onclick="filtrar('REALIZADO', this)">Realizados</button>
+        <button class="filtro-btn" onclick="filtrar('CANCELADO', this)">Cancelados</button>
+    </div>
+
+    <div class="topo-section">
+        <span class="contador" id="contador"></span>
+        <a href="/agendar.html" class="btn btn-primary btn-sm">Novo Agendamento</a>
+    </div>
+
+    <div id="listaAg"><p class="empty">Carregando...</p></div>
+</div>
+
+<script>
+    const token   = localStorage.getItem('token');
+    if (!token) location.href = '/';
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    let todosAgs = [];
+    let filtroAtivo = 'TODOS';
+
+    const statusLabel = {
+        PENDENTE: 'Pendente', CONFIRMADO: 'Confirmado',
+        REALIZADO: 'Realizado', CANCELADO: 'Cancelado'
+    };
+
+    function badgeClass(s) {
+        return { PENDENTE:'s-pendente', CONFIRMADO:'s-confirmado', REALIZADO:'s-realizado', CANCELADO:'s-cancelado' }[s] || '';
+    }
+
+    function formatarData(str) {
+        return new Date(str).toLocaleString('pt-BR', {
+            day: '2-digit', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    function renderizar(lista) {
+        const el = document.getElementById('listaAg');
+        document.getElementById('contador').textContent = lista.length + ' agendamento(s)';
+
+        if (!lista.length) {
+            el.innerHTML = '<p class="empty">Nenhum agendamento encontrado para este filtro.</p>';
+            return;
+        }
+
+        el.innerHTML = lista.map(a => `
+            <div class="ag-card">
+                <div class="ag-icone">${a.petEspecie === 'CACHORRO' ? 'C' : 'G'}</div>
+                <div class="ag-info">
+                    <div class="pet-nome">${a.petNome}</div>
+                    <div class="clinica">${a.clinicaNome}</div>
+                    <div class="data-hora">${formatarData(a.dataHora)}</div>
+                </div>
+                <div class="ag-direita">
+                    <span class="badge-status ${badgeClass(a.status)}">${statusLabel[a.status]}</span>
+                    ${(a.status === 'PENDENTE' || a.status === 'CONFIRMADO')
+                        ? `<button class="btn-cancelar" onclick="cancelar(${a.id})">Cancelar</button>`
+                        : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filtrar(status, btn) {
+        filtroAtivo = status;
+        document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        const filtrados = status === 'TODOS' ? todosAgs : todosAgs.filter(a => a.status === status);
+        renderizar(filtrados);
+    }
+
+    async function cancelar(id) {
+        if (!confirm('Cancelar este agendamento?')) return;
+        const r = await fetch('/api/agendamentos/' + id + '/cancelar', {
+            method: 'PUT', headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (r.status === 401) { localStorage.clear(); location.href = '/'; return; }
+        if (r.ok) carregar();
+        else { const d = await r.json(); alert(d.erro || 'Erro ao cancelar'); }
+    }
+
+    async function carregar() {
+        const r = await fetch('/api/agendamentos', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (r.status === 401) { localStorage.clear(); location.href = '/'; return; }
+        todosAgs = await r.json();
+        const filtrados = filtroAtivo === 'TODOS' ? todosAgs : todosAgs.filter(a => a.status === filtroAtivo);
+        renderizar(filtrados);
+    }
+
+    carregar();
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Admin</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .acoes-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .btn-acao {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .15s, transform .1s;
+            white-space: nowrap;
+        }
+        .btn-acao:hover  { opacity: .85; }
+        .btn-acao:active { transform: scale(.95); }
+
+        .btn-acao.confirmar { background: #dbeafe; color: #1e40af; }
+        .btn-acao.confirmar:hover { background: #bfdbfe; }
+
+        .btn-acao.realizar  { background: #dcfce7; color: #166534; }
+        .btn-acao.realizar:hover  { background: #bbf7d0; }
+
+        .btn-acao.cancelar  { background: #fee2e2; color: #991b1b; }
+        .btn-acao.cancelar:hover  { background: #fecaca; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/dashboard.html" class="logo" style="text-decoration:none;color:white">castra<span style="color:#00b89c">Pet</span></a>
+    <div>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="#" onclick="sair()">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-voltar">Voltar</a>
+    <h1>Painel Administrativo</h1>
+
+    <!-- Estatísticas -->
+    <div id="stats" class="stats-grid"></div>
+
+    <!-- Todos os agendamentos -->
+    <div class="card">
+        <h2>Todos os Agendamentos</h2>
+        <div style="margin-bottom:12px">
+            <button class="btn btn-secondary btn-sm" onclick="pagAnterior()">◀ Anterior</button>
+            <span id="paginaInfo" style="margin:0 12px;font-size:14px"></span>
+            <button class="btn btn-secondary btn-sm" onclick="proxPagina()">Próxima ▶</button>
+        </div>
+        <div id="listaAgendamentos"><p class="empty">Carregando...</p></div>
+    </div>
+
+    <!-- Cadastrar Clínica -->
+    <div class="card">
+        <h2>Cadastrar Nova Clínica</h2>
+        <div id="alertaClinica"></div>
+        <form id="formClinica">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" id="clNome" required>
+                </div>
+                <div class="form-group">
+                    <label>Endereço *</label>
+                    <input type="text" id="clEndereco" required>
+                </div>
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" id="clCidade">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <input type="text" id="clEstado" maxlength="2" placeholder="SP">
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="tel" id="clTelefone">
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="clEmail">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Salvar Clínica</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!token || (usuario.role !== 'ADMIN' && usuario.role !== 'VET')) location.href = '/';
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    let paginaAtual = 0;
+    const tamPagina = 10;
+
+    async function apiAuth(url, opts = {}) {
+        opts.headers = { ...opts.headers, 'Authorization': 'Bearer ' + token };
+        return fetch(url, opts);
+    }
+
+    async function carregarEstatisticas() {
+        const r = await apiAuth('/api/agendamentos/admin/estatisticas');
+        const dados = await r.json();
+        document.getElementById('stats').innerHTML = [
+            { label: 'Total',       val: dados.total       ?? 0, cor: '#2d6a4f' },
+            { label: 'Pendentes',   val: dados.pendentes   ?? 0, cor: '#856404' },
+            { label: 'Confirmados', val: dados.confirmados ?? 0, cor: '#004085' },
+            { label: 'Realizados',  val: dados.realizados  ?? 0, cor: '#155724' },
+            { label: 'Cancelados',  val: dados.cancelados  ?? 0, cor: '#721c24' }
+        ].map(s => `
+            <div class="stat-card">
+                <div class="number" style="color:${s.cor}">${s.val}</div>
+                <div class="label">${s.label}</div>
+            </div>`).join('');
+    }
+
+    async function carregarAgendamentos() {
+        const r = await apiAuth(`/api/agendamentos/admin/todos?page=${paginaAtual}&size=${tamPagina}`);
+        const lista = await r.json();
+        document.getElementById('paginaInfo').textContent = `Página ${paginaAtual + 1}`;
+        const el = document.getElementById('listaAgendamentos');
+        if (!lista.length) { el.innerHTML = '<p class="empty">Nenhum agendamento.</p>'; return; }
+
+        function badgeStatus(s) {
+            const cls = { PENDENTE:'pendente', CONFIRMADO:'confirmado', REALIZADO:'realizado', CANCELADO:'cancelado' };
+            return `<span class="badge badge-${cls[s]||''}">${s}</span>`;
+        }
+
+        el.innerHTML = `<table>
+            <thead><tr><th>ID</th><th>Pet</th><th>Tutor</th><th>Clínica</th><th>Data/Hora</th><th>Status</th><th>Ação</th></tr></thead>
+            <tbody>${lista.map(a => `<tr>
+                <td>${a.id}</td>
+                <td>${a.petNome}</td>
+                <td>${a.tutorNome}</td>
+                <td>${a.clinicaNome}</td>
+                <td>${new Date(a.dataHora).toLocaleString('pt-BR')}</td>
+                <td>${badgeStatus(a.status)}</td>
+                <td>
+                    <div class="acoes-btns">
+                        ${a.status === 'PENDENTE' ? `
+                            <button class="btn-acao confirmar" onclick="atualizarStatus(${a.id},'CONFIRMADO')">Confirmar</button>
+                            <button class="btn-acao cancelar"  onclick="atualizarStatus(${a.id},'CANCELADO')">Cancelar</button>
+                        ` : a.status === 'CONFIRMADO' ? `
+                            <button class="btn-acao realizar"  onclick="atualizarStatus(${a.id},'REALIZADO')">Realizado</button>
+                            <button class="btn-acao cancelar"  onclick="atualizarStatus(${a.id},'CANCELADO')">Cancelar</button>
+                        ` : `<span style="color:#bbb;font-size:13px">—</span>`}
+                    </div>
+                </td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    async function atualizarStatus(id, status) {
+        if (!status) return;
+        const r = await apiAuth(`/api/agendamentos/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (r.ok) { carregarAgendamentos(); carregarEstatisticas(); }
+        else { const d = await r.json(); alert(d.erro || 'Erro ao atualizar'); }
+    }
+
+    function proxPagina() { paginaAtual++; carregarAgendamentos(); }
+    function pagAnterior() { if (paginaAtual > 0) { paginaAtual--; carregarAgendamentos(); } }
+
+    document.getElementById('formClinica').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const dados = {
+            nome: document.getElementById('clNome').value,
+            endereco: document.getElementById('clEndereco').value,
+            cidade: document.getElementById('clCidade').value || null,
+            estado: document.getElementById('clEstado').value || null,
+            telefone: document.getElementById('clTelefone').value || null,
+            email: document.getElementById('clEmail').value || null
+        };
+        const r = await apiAuth('/api/clinicas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        const alertEl = document.getElementById('alertaClinica');
+        if (r.ok) {
+            alertEl.innerHTML = '<div class="alert alert-success">Clínica cadastrada!</div>';
+            document.getElementById('formClinica').reset();
+        } else {
+            const d = await r.json();
+            alertEl.innerHTML = `<div class="alert alert-error">${d.erro || 'Erro'}</div>`;
+        }
+    });
+
+    carregarEstatisticas();
+    carregarAgendamentos();
+</script>
+</body>
+</html>

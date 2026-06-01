@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Login</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #eef2f7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+            padding: 32px 16px;
+        }
+
+        /* Blobs decorativos de fundo */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            opacity: .18;
+            pointer-events: none;
+        }
+        body::before {
+            width: 420px; height: 420px;
+            background: #00c2a8;
+            top: -120px; left: -120px;
+        }
+        body::after {
+            width: 360px; height: 360px;
+            background: #1a73e8;
+            bottom: -100px; right: -100px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 44px 36px 36px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.10);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Logo ── */
+        .logo-wrap { margin-bottom: 6px; }
+
+        .logo-svg-circle {
+            width: 96px; height: 96px;
+            margin: 0 auto 8px;
+            display: block;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: .3px;
+            color: #1a2e4a;
+        }
+        .logo-text span { color: #00b89c; }
+
+        .logo-slogan {
+            font-size: 9.5px;
+            color: #aab;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+            margin-bottom: 28px;
+        }
+
+        /* ── Títulos ── */
+        .titulo  { font-size: 24px; font-weight: 700; color: #1a2e4a; margin-bottom: 6px; }
+        .subtitulo { font-size: 14px; color: #00b89c; margin-bottom: 26px; }
+
+        /* ── Inputs ── */
+        .field {
+            position: relative;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .field svg {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px; height: 18px;
+            color: #bbb;
+        }
+        .field input {
+            width: 100%;
+            padding: 14px 14px 14px 46px;
+            border: 1.5px solid #e4e8ee;
+            border-radius: 14px;
+            font-size: 14px;
+            background: #f7f9fc;
+            color: #333;
+            transition: border-color .2s, background .2s;
+        }
+        .field input:focus {
+            outline: none;
+            border-color: #00b89c;
+            background: white;
+        }
+        .field input::placeholder { color: #c0c6d0; }
+
+        /* ── Botão Entrar ── */
+        .btn-entrar {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #00c97a 0%, #1a7aff 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+            margin-bottom: 12px;
+            transition: opacity .2s, transform .1s;
+            letter-spacing: .3px;
+        }
+        .btn-entrar:hover  { opacity: .9; }
+        .btn-entrar:active { transform: scale(.98); }
+
+        /* ── Divisor ── */
+        .divisor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 4px 0 12px;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .divisor::before, .divisor::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e8eaed;
+        }
+
+        /* ── Botão Google ── */
+        .btn-google {
+            width: 100%;
+            padding: 13px 14px;
+            background: white;
+            border: 1.5px solid #e0e3ea;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #3c4043;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background .15s, box-shadow .15s;
+            margin-bottom: 20px;
+        }
+        .btn-google:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+        /* ── Rodapé ── */
+        .rodape { font-size: 13px; color: #888; }
+        .rodape a { color: #00b89c; font-weight: 700; text-decoration: none; }
+
+        /* ── Alerta ── */
+        .alerta-erro {
+            background: #fff0f0;
+            color: #c0392b;
+            border-left: 3px solid #e74c3c;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            text-align: left;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+        <svg class="logo-svg-circle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#00b89c" stroke-width="3"/>
+            <!-- Cachorro (esquerda) -->
+            <ellipse cx="38" cy="56" rx="14" ry="18" fill="#1a2e4a"/>
+            <ellipse cx="38" cy="38" rx="10" ry="10" fill="#1a2e4a"/>
+            <ellipse cx="30" cy="32" rx="5" ry="7" fill="#1a2e4a" transform="rotate(-20,30,32)"/>
+            <ellipse cx="46" cy="33" rx="4" ry="6" fill="#1a2e4a" transform="rotate(15,46,33)"/>
+            <!-- Gato (direita, menor) -->
+            <ellipse cx="60" cy="60" rx="11" ry="14" fill="#1a2e4a"/>
+            <ellipse cx="60" cy="44" rx="8" ry="8" fill="#1a2e4a"/>
+            <polygon points="53,38 56,30 59,38" fill="#1a2e4a"/>
+            <polygon points="61,38 64,30 67,38" fill="#1a2e4a"/>
+            <!-- Patinha central -->
+            <ellipse cx="50" cy="68" rx="5" ry="4" fill="white" opacity=".25"/>
+        </svg>
+        <div class="logo-text">castra<span>Pet</span></div>
+        <div class="logo-slogan">castração com amor, saúde e responsabilidade</div>
+    </div>
+
+    <div class="titulo">Bem-vindo!</div>
+    <div class="subtitulo">Entre para agendar a castração do seu pet</div>
+
+    <div id="alerta"></div>
+
+    <!-- Inputs -->
+    <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="4" width="20" height="16" rx="3"/>
+            <path d="M2 7l10 7 10-7"/>
+        </svg>
+        <input type="email" id="email" placeholder="Seu e-mail" required>
+    </div>
+    <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="5" y="11" width="14" height="10" rx="2"/>
+            <path d="M8 11V7a4 4 0 018 0v4"/>
+        </svg>
+        <input type="password" id="senha" placeholder="Sua senha" required>
+    </div>
+
+    <button class="btn-entrar" onclick="entrar()">Entrar</button>
+
+    <div class="divisor">ou</div>
+
+    <!-- Google (visual apenas) -->
+    <button class="btn-google" onclick="alert('Login com Google em breve!')">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continuar com Google
+    </button>
+
+    <div class="rodape">Não tem conta? <a href="/register.html">Criar conta</a></div>
+</div>
+
+<script>
+    if (localStorage.getItem('token')) location.href = '/dashboard.html';
+
+    async function entrar() {
+        const alertaEl = document.getElementById('alerta');
+        alertaEl.innerHTML = '';
+        try {
+            const r = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    senha: document.getElementById('senha').value
+                })
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.erro || 'Erro ao fazer login');
+            localStorage.setItem('token', d.token);
+            localStorage.setItem('usuario', JSON.stringify({ id: d.id, nome: d.nome, role: d.role, email: d.email }));
+            location.href = '/dashboard.html';
+        } catch (e) {
+            alertaEl.innerHTML = `<div class="alerta-erro">${e.message}</div>`;
+        }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+</script>
+</body>
+</html>

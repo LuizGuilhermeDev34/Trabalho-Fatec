@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Meus Pets</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav>
+    <a href="/dashboard.html" class="logo" style="text-decoration:none;color:white">castra<span style="color:#00b89c">Pet</span></a>
+    <div>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/agendar.html">Agendar</a>
+        <a href="#" onclick="sair()">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-voltar">Voltar</a>
+    <h1>Meus Pets</h1>
+
+    <div class="card">
+        <h2 id="tituloForm">Cadastrar Novo Pet</h2>
+        <div id="alerta"></div>
+        <form id="formPet" onsubmit="return false">
+            <input type="hidden" id="petId">
+            <input type="hidden" id="racaValor">
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" id="nome" required>
+                </div>
+                <div class="form-group">
+                    <label>Sexo *</label>
+                    <select id="sexo" data-drp required>
+                        <option value="">Selecione...</option>
+                        <option value="MACHO">Macho</option>
+                        <option value="FEMEA">Femea</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Especie *</label>
+                    <select id="especie" data-drp required>
+                        <option value="">Selecione...</option>
+                        <option value="CACHORRO">Cachorro</option>
+                        <option value="GATO">Gato</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data de Nascimento</label>
+                    <div style="display:grid;grid-template-columns:1fr 2fr 1.5fr;gap:8px">
+                        <select id="diaNasc" data-drp>
+                            <option value="">Dia</option>
+                        </select>
+                        <select id="mesNasc" data-drp>
+                            <option value="">Mes</option>
+                            <option value="01">Janeiro</option>
+                            <option value="02">Fevereiro</option>
+                            <option value="03">Marco</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Maio</option>
+                            <option value="06">Junho</option>
+                            <option value="07">Julho</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                        <select id="anoNasc" data-drp>
+                            <option value="">Ano</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Peso (kg)</label>
+                    <input type="number" id="peso" step="0.1" min="0">
+                </div>
+            </div>
+
+            <div class="form-group" id="grupoRaca" style="display:none; margin-top:4px">
+                <label>Raca</label>
+                <div class="drp-wrapper" style="max-width:320px">
+                    <button type="button" class="drp-trigger" id="drpRacaTrigger" onclick="toggleRaca(event)">
+                        Selecione a raca...
+                    </button>
+                    <div class="drp-lista" id="drpRacaLista"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Observacoes</label>
+                <textarea id="observacoes"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="salvar()">Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="limparForm()" style="margin-left:8px">Cancelar</button>
+        </form>
+    </div>
+
+    <div id="mensagemSucesso" style="display:none; background:white; border-radius:16px; border:2px solid #00b89c; box-shadow:0 4px 20px rgba(0,184,156,0.15); padding:28px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+            <div style="width:48px;height:48px;background:#e8fdf5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✓</div>
+            <div>
+                <div style="font-size:18px;font-weight:800;color:#1a2e4a;">Pet cadastrado com sucesso!</div>
+                <div style="font-size:13px;color:#64748b;">Confira os dados abaixo e agende a castracao se desejar.</div>
+            </div>
+        </div>
+        <div style="background:#f8fafc;border-radius:10px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+            <div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Nome</div>
+                <div style="font-size:15px;font-weight:700;color:#1a2e4a;" id="sucNome"></div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Especie</div>
+                <div style="font-size:15px;font-weight:700;color:#1a2e4a;" id="sucEspecie"></div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Raca</div>
+                <div style="font-size:15px;font-weight:700;color:#1a2e4a;" id="sucRaca"></div>
+            </div>
+            <div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Sexo</div>
+                <div style="font-size:15px;font-weight:700;color:#1a2e4a;" id="sucSexo"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <a href="/agendar.html" class="btn btn-primary">Agendar Castracao agora</a>
+            <button class="btn btn-secondary" onclick="document.getElementById('mensagemSucesso').style.display='none'">Fechar</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Lista de Pets</h2>
+        <div id="listaPets"><p class="empty">Carregando...</p></div>
+    </div>
+</div>
+
+<script src="/dropdown.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) location.href = '/';
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    const selDia = document.getElementById('diaNasc');
+    const selAno = document.getElementById('anoNasc');
+
+    for (let d = 1; d <= 31; d++) {
+        const o = document.createElement('option');
+        o.value = String(d).padStart(2, '0');
+        o.textContent = d;
+        selDia.appendChild(o);
+    }
+
+    const anoAtual = new Date().getFullYear();
+    for (let a = anoAtual; a >= anoAtual - 30; a--) {
+        const o = document.createElement('option');
+        o.value = a;
+        o.textContent = a;
+        selAno.appendChild(o);
+    }
+
+    function getDataNascimento() {
+        const d = document.getElementById('diaNasc').value;
+        const m = document.getElementById('mesNasc').value;
+        const a = document.getElementById('anoNasc').value;
+        return (d && m && a) ? `${a}-${m}-${d}` : null;
+    }
+
+    function setDataNascimento(val) {
+        if (!val) return;
+        const partes = val.split('-');
+        if (partes.length !== 3) return;
+        drpAno.setValue(partes[0]);
+        drpMes.setValue(partes[1]);
+        drpDia.setValue(partes[2]);
+    }
+
+    CustomDropdown.initAll();
+
+    const drpDia = document.getElementById('diaNasc')._dropdown;
+    const drpMes = document.getElementById('mesNasc')._dropdown;
+    const drpAno = document.getElementById('anoNasc')._dropdown;
+
+    document.getElementById('especie').addEventListener('change', atualizarRacas);
+
+    const racasPorEspecie = {
+        CACHORRO: [
+            'Vira-lata / SRD',
+            'Labrador Retriever', 'Golden Retriever', 'Bulldog Frances', 'Bulldog Ingles',
+            'Poodle', 'Beagle', 'Yorkshire Terrier', 'Shih Tzu', 'Maltes', 'Lhasa Apso',
+            'Pinscher Miniatura', 'Chihuahua', 'Dachshund (Salsicha)', 'Boxer', 'Rottweiler',
+            'Pastor Alemao', 'Border Collie', 'Husky Siberiano', 'Chow-Chow', 'Akita',
+            'Dalmata', 'Cocker Spaniel', 'Shar-Pei', 'Schnauzer',
+            'Spitz Alemao (Lulu da Pomerania)', 'Bichon Frise', 'Weimaraner', 'Dobermann',
+            'Fila Brasileiro', 'Sao Bernardo', 'Pit Bull Terrier', 'American Bully',
+            'Malamute do Alasca', 'Outra raca'
+        ],
+        GATO: [
+            'Vira-lata / SRD',
+            'Persa', 'Siames', 'Maine Coon', 'Ragdoll', 'Bengal', 'British Shorthair',
+            'Scottish Fold', 'Sphynx (Sem pelo)', 'Abissinio', 'Birmanes', 'Angora',
+            'Himalaio', 'Noruegues da Floresta', 'Savannah', 'Burmes',
+            'Exotico de Pelo Curto', 'Devon Rex', 'Cornish Rex', 'Tonquines', 'Outra raca'
+        ]
+    };
+
+    function toggleRaca(e) {
+        e.stopPropagation();
+        const lista = document.getElementById('drpRacaLista');
+        const trigger = document.getElementById('drpRacaTrigger');
+        document.querySelectorAll('.drp-lista.aberta').forEach(l => {
+            l.classList.remove('aberta');
+            l.previousElementSibling && l.previousElementSibling.classList.remove('aberto');
+        });
+        const aberto = lista.classList.toggle('aberta');
+        trigger.classList.toggle('aberto', aberto);
+    }
+
+    function selecionarRaca(valor) {
+        document.getElementById('racaValor').value = valor;
+        document.getElementById('drpRacaTrigger').textContent = valor;
+        document.getElementById('drpRacaTrigger').classList.remove('aberto');
+        document.getElementById('drpRacaLista').classList.remove('aberta');
+        document.querySelectorAll('#drpRacaLista .drp-item').forEach(el =>
+            el.classList.toggle('selecionado', el.dataset.valor === valor)
+        );
+    }
+
+    function atualizarRacas() {
+        const especie = document.getElementById('especie').value;
+        const lista   = document.getElementById('drpRacaLista');
+        const grupo   = document.getElementById('grupoRaca');
+        const trigger = document.getElementById('drpRacaTrigger');
+
+        document.getElementById('racaValor').value = '';
+        trigger.textContent = 'Selecione a raca...';
+        trigger.classList.remove('aberto');
+        lista.innerHTML = '';
+        lista.classList.remove('aberta');
+
+        if (!especie) { grupo.style.display = 'none'; return; }
+
+        racasPorEspecie[especie].forEach((raca, i) => {
+            const div = document.createElement('div');
+            div.className = 'drp-item' + (i === 0 ? ' destaque' : '');
+            div.textContent = raca;
+            div.dataset.valor = raca;
+            div.onclick = () => selecionarRaca(raca);
+            lista.appendChild(div);
+        });
+        grupo.style.display = 'block';
+    }
+
+    async function api(url, opts = {}) {
+        opts.headers = { ...opts.headers, 'Authorization': 'Bearer ' + token };
+        return fetch(url, opts);
+    }
+
+    async function carregarPets() {
+        const r = await api('/api/pets');
+        const pets = await r.json();
+        const el = document.getElementById('listaPets');
+        if (!pets.length) { el.innerHTML = '<p class="empty">Nenhum pet cadastrado.</p>'; return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>Nome</th><th>Especie</th><th>Raca</th><th>Sexo</th><th>Idade</th><th>Castrado</th><th>Acoes</th></tr></thead>
+            <tbody>${pets.map(p => `<tr>
+                <td>${p.nome}</td>
+                <td>${p.especie === 'CACHORRO' ? 'Cachorro' : 'Gato'}</td>
+                <td>${p.raca || '-'}</td>
+                <td>${p.sexo}</td>
+                <td>${p.idadeEmMeses != null ? p.idadeEmMeses + ' meses' : '-'}</td>
+                <td>${p.castrado ? 'Sim' : 'Nao'}</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm" onclick='editar(${JSON.stringify(p)})'>Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="remover(${p.id})">Excluir</button>
+                </td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    async function salvar() {
+        const alertaEl = document.getElementById('alerta');
+        const id       = document.getElementById('petId').value;
+        const nome     = document.getElementById('nome').value;
+        const especie  = document.getElementById('especie').value;
+        const sexo     = document.getElementById('sexo').value;
+
+        if (!nome || !especie || !sexo) {
+            alertaEl.innerHTML = '<div class="alert alert-error">Preencha os campos obrigatorios (*).</div>';
+            return;
+        }
+        const dados = {
+            nome, especie, sexo,
+            raca: document.getElementById('racaValor').value || null,
+            dataNascimento: getDataNascimento(),
+            peso: parseFloat(document.getElementById('peso').value) || null,
+            observacoes: document.getElementById('observacoes').value || null
+        };
+        const r = await api(id ? `/api/pets/${id}` : '/api/pets', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        const resp = await r.json();
+        if (!r.ok) {
+            alertaEl.innerHTML = `<div class="alert alert-error">${resp.erro}</div>`;
+        } else {
+            limparForm();
+            carregarPets();
+            document.getElementById('mensagemSucesso').style.display = 'block';
+            document.getElementById('sucNome').textContent    = resp.nome || dados.nome;
+            document.getElementById('sucEspecie').textContent = resp.especie || dados.especie;
+            document.getElementById('sucRaca').textContent    = resp.raca   || '-';
+            document.getElementById('sucSexo').textContent    = resp.sexo   || dados.sexo;
+            document.getElementById('listaPets').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function editar(pet) {
+        document.getElementById('petId').value = pet.id;
+        document.getElementById('nome').value  = pet.nome;
+        document.getElementById('especie')._dropdown.setValue(pet.especie);
+        document.getElementById('sexo')._dropdown.setValue(pet.sexo);
+        setDataNascimento(pet.dataNascimento);
+        document.getElementById('peso').value        = pet.peso || '';
+        document.getElementById('observacoes').value = pet.observacoes || '';
+        atualizarRacas();
+        if (pet.raca) selecionarRaca(pet.raca);
+        document.getElementById('tituloForm').textContent = 'Editar Pet';
+        window.scrollTo(0, 0);
+    }
+
+    async function remover(id) {
+        if (!confirm('Remover este pet?')) return;
+        const r = await api(`/api/pets/${id}`, { method: 'DELETE' });
+        if (r.ok || r.status === 204) carregarPets();
+        else { const d = await r.json(); alert(d.erro || 'Erro ao remover'); }
+    }
+
+    function limparForm() {
+        document.getElementById('nome').value        = '';
+        document.getElementById('peso').value        = '';
+        document.getElementById('observacoes').value = '';
+        document.getElementById('petId').value       = '';
+        document.getElementById('racaValor').value   = '';
+        drpDia.reset();
+        drpMes.reset();
+        drpAno.reset();
+        document.getElementById('especie')._dropdown.reset();
+        document.getElementById('sexo')._dropdown.reset();
+        document.getElementById('grupoRaca').style.display      = 'none';
+        document.getElementById('drpRacaTrigger').textContent   = 'Selecione a raca...';
+        document.getElementById('drpRacaLista').innerHTML        = '';
+        document.getElementById('tituloForm').textContent        = 'Cadastrar Novo Pet';
+        document.getElementById('alerta').innerHTML              = '';
+    }
+
+    carregarPets();
+</script>
+</body>
+</html>

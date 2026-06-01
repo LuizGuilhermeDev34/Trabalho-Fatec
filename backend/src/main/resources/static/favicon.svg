@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fundo circular degradê -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a2e4a"/>
+      <stop offset="100%" stop-color="#00b89c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="32" fill="url(#bg)"/>
+
+  <!-- Patinhas brancas estilizadas -->
+  <!-- Palma central -->
+  <ellipse cx="32" cy="38" rx="9" ry="7" fill="white" opacity="0.95"/>
+  <!-- Dedos -->
+  <ellipse cx="22" cy="30" rx="4.5" ry="5.5" fill="white" opacity="0.95"/>
+  <ellipse cx="29" cy="27" rx="4" ry="5" fill="white" opacity="0.95"/>
+  <ellipse cx="36" cy="27" rx="4" ry="5" fill="white" opacity="0.95"/>
+  <ellipse cx="43" cy="30" rx="4.5" ry="5.5" fill="white" opacity="0.95"/>
+</svg>

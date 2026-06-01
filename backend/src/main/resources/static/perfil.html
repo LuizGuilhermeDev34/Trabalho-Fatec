@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastraPet - Meu Perfil</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .perfil-wrap { max-width: 680px; margin: 0 auto; }
+
+        /* Card principal */
+        .perfil-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .perfil-banner {
+            height: 110px;
+            background: linear-gradient(135deg, #1a2e4a 0%, #00b89c 100%);
+        }
+        .perfil-body { padding: 0 28px 28px; }
+
+        /* Foto */
+        .foto-wrap {
+            position: relative;
+            display: inline-block;
+            margin-top: -54px;
+            margin-bottom: 14px;
+        }
+        .foto-circulo {
+            width: 104px; height: 104px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            background: #00b89c;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 38px; font-weight: 800; color: white;
+            overflow: hidden;
+            cursor: pointer;
+            transition: box-shadow .2s;
+        }
+        .foto-circulo:hover { box-shadow: 0 6px 20px rgba(0,184,156,0.35); }
+        .foto-circulo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .foto-btn {
+            position: absolute;
+            bottom: 4px; right: 4px;
+            width: 32px; height: 32px;
+            background: #00b89c;
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background .15s;
+            z-index: 2;
+        }
+        .foto-btn:hover { background: #009b82; }
+        #inputFoto { display: none; }
+
+        /* Modal foto */
+        .modal-foto {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.82);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-foto.aberto { display: flex; }
+        .modal-foto img {
+            max-width: 90vw; max-height: 88vh;
+            border-radius: 16px;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+        .modal-foto .fechar {
+            position: absolute;
+            top: 20px; right: 24px;
+            color: white; font-size: 32px;
+            cursor: pointer; line-height: 1;
+            opacity: .8;
+        }
+        .modal-foto .fechar:hover { opacity: 1; }
+
+        /* Info */
+        .perfil-nome { font-size: 22px; font-weight: 800; color: #1a2e4a; margin-bottom: 4px; }
+        .perfil-role {
+            display: inline-block;
+            background: #e8fdf5; color: #0d6e4f;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px;
+            padding: 3px 10px; border-radius: 20px;
+            margin-bottom: 22px;
+        }
+
+        /* Campos */
+        .campo-label {
+            font-size: 11px; font-weight: 700;
+            color: #94a3b8; text-transform: uppercase;
+            letter-spacing: .6px; margin-bottom: 5px;
+        }
+        .campo-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 14px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            transition: border-color .15s;
+        }
+        .campo-row.editavel { cursor: pointer; }
+        .campo-row.editavel:hover { border-color: #00b89c; background: white; }
+        .campo-row .valor { flex: 1; font-size: 14px; font-weight: 600; color: #1a2e4a; }
+        .campo-row .ico   { font-size: 16px; }
+        .campo-row .editar-btn { font-size: 13px; color: #94a3b8; transition: color .15s; }
+        .campo-row.editavel:hover .editar-btn { color: #00b89c; }
+
+        .campo-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #00b89c;
+            border-radius: 10px;
+            font-size: 14px; font-weight: 600; color: #1a2e4a;
+            background: white;
+            margin-bottom: 14px;
+            box-shadow: 0 0 0 3px rgba(0,184,156,0.1);
+        }
+        .campo-input:focus { outline: none; }
+
+        .campo-dica { font-size: 11px; color: #94a3b8; margin-top: -10px; margin-bottom: 14px; }
+
+        /* Pets */
+        .pets-card {
+            background: white; border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid #e2e8f0;
+            padding: 22px 26px; margin-bottom: 20px;
+        }
+        .pet-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .pet-row:last-child { border-bottom: none; }
+        .pet-icone {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .pet-icone.c { background: #fef9c3; }
+        .pet-icone.g { background: #fce7f3; }
+        .pet-info { flex: 1; }
+        .pet-info strong { display: block; font-size: 14px; color: #1a2e4a; }
+        .pet-info span   { font-size: 12px; color: #94a3b8; }
+        .pet-badge {
+            font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+        }
+        .pet-badge.ok  { background: #dcfce7; color: #166534; }
+        .pet-badge.nao { background: #fef9c3; color: #854d0e; }
+
+        .alerta-perfil { margin-bottom: 14px; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/dashboard.html" class="logo" style="text-decoration:none;color:white">castra<span style="color:#00b89c">Pet</span></a>
+    <div style="display:flex;align-items:center;gap:6px">
+        <a href="/dashboard.html" style="color:#cbd5e1;padding:7px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500">Dashboard</a>
+        <a href="#" onclick="sair()" style="color:#f87171;padding:7px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;border:1px solid rgba(248,113,113,.3)">Sair</a>
+    </div>
+</nav>
+
+<!-- Modal visualizar foto -->
+<div class="modal-foto" id="modalFoto" onclick="fecharModal()">
+    <span class="fechar">✕</span>
+    <img id="modalImg" src="" alt="Foto de perfil">
+</div>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-voltar">Voltar</a>
+    <div class="perfil-wrap">
+
+        <!-- Perfil -->
+        <div class="perfil-card">
+            <div class="perfil-banner"></div>
+            <div class="perfil-body">
+
+                <div class="foto-wrap">
+                    <div class="foto-circulo" id="avatarEl" onclick="verFoto()">
+                        <span id="avatarLetra"></span>
+                        <img id="avatarImg" src="" alt="" style="display:none">
+                    </div>
+                    <div class="foto-btn" title="Alterar foto" onclick="document.getElementById('inputFoto').click()">📷</div>
+                    <input type="file" id="inputFoto" accept="image/*" onchange="trocarFoto(event)">
+                </div>
+
+                <div id="alertaPerfil" class="alerta-perfil"></div>
+
+                <div class="perfil-nome" id="exibeNome"></div>
+                <div class="perfil-role" id="exibeRole"></div>
+
+                <!-- Nome -->
+                <div class="campo-label">Nome completo</div>
+                <div class="campo-row editavel" id="exibeNomeRow" onclick="editar('nome')">
+                    <span class="ico">👤</span>
+                    <span class="valor" id="valorNome"></span>
+                    <span class="editar-btn">✏️</span>
+                </div>
+                <input class="campo-input" id="inputNome" placeholder="Seu nome completo"
+                    style="display:none" onblur="salvar('nome')"
+                    onkeydown="if(event.key==='Enter')salvar('nome');if(event.key==='Escape')cancelar('nome')">
+
+                <!-- E-mail (visível apenas para ADMIN e VET) -->
+                <div id="campoEmail" style="display:none">
+                    <div class="campo-label">E-mail</div>
+                    <div class="campo-row">
+                        <span class="ico">✉️</span>
+                        <span class="valor" id="valorEmail"></span>
+                    </div>
+                </div>
+
+                <!-- Telefone -->
+                <div class="campo-label">Telefone</div>
+                <div class="campo-row editavel" id="exibeTelRow" onclick="editar('tel')">
+                    <span class="ico">📱</span>
+                    <span class="valor" id="valorTel" style="color:#94a3b8">Adicionar telefone...</span>
+                    <span class="editar-btn">✏️</span>
+                </div>
+                <input class="campo-input" id="inputTel" placeholder="(11) 99999-9999"
+                    style="display:none" onblur="salvar('tel')"
+                    onkeydown="if(event.key==='Enter')salvar('tel');if(event.key==='Escape')cancelar('tel')">
+                <p class="campo-dica" id="dicaTel" style="display:none">Pressione Enter para salvar ou Esc para cancelar</p>
+
+            </div>
+        </div>
+
+        <!-- Pets -->
+        <div class="pets-card">
+            <h2>🐾 Meus Pets</h2>
+            <div id="listaPets"><p class="empty">Carregando...</p></div>
+            <a href="/pets.html" class="btn btn-primary btn-sm" style="margin-top:14px;display:inline-flex">+ Cadastrar pet</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const token   = localStorage.getItem('token');
+    let usuario   = JSON.parse(localStorage.getItem('usuario') || '{}');
+    if (!token) location.href = '/';
+
+    function sair() { localStorage.clear(); location.href = '/'; }
+
+    // Preenche dados
+    function renderizar() {
+        const primeiroNome = (usuario.nome || '').split(' ')[0];
+        document.getElementById('avatarLetra').textContent = primeiroNome.charAt(0).toUpperCase();
+        document.getElementById('exibeNome').textContent   = usuario.nome || '';
+        document.getElementById('exibeRole').textContent   =
+            usuario.role === 'ADMIN' ? 'Administrador' :
+            usuario.role === 'VET'   ? 'Veterinário'   : 'Tutor';
+        document.getElementById('valorNome').textContent  = usuario.nome || '';
+        document.getElementById('valorEmail').textContent = usuario.email || '—';
+        if (usuario.role === 'ADMIN' || usuario.role === 'VET') {
+            document.getElementById('campoEmail').style.display = 'block';
+        }
+
+        const tel = localStorage.getItem('telefone');
+        if (tel) {
+            document.getElementById('valorTel').textContent  = tel;
+            document.getElementById('valorTel').style.color  = '#1a2e4a';
+        }
+    }
+
+    // Foto
+    const fotoSalva = localStorage.getItem('fotoPerfil');
+    if (fotoSalva) mostrarFoto(fotoSalva);
+
+    function trocarFoto(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Foto muito grande. Use uma imagem menor que 5MB.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev => {
+            localStorage.setItem('fotoPerfil', ev.target.result);
+            mostrarFoto(ev.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function mostrarFoto(src) {
+        document.getElementById('avatarLetra').style.display = 'none';
+        const img = document.getElementById('avatarImg');
+        img.src   = src;
+        img.style.display = 'block';
+    }
+
+    function verFoto() {
+        const src = localStorage.getItem('fotoPerfil');
+        if (!src) { document.getElementById('inputFoto').click(); return; }
+        document.getElementById('modalImg').src = src;
+        document.getElementById('modalFoto').classList.add('aberto');
+    }
+
+    function fecharModal() {
+        document.getElementById('modalFoto').classList.remove('aberto');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+    // Edição inline
+    const campos = {
+        nome: { row: 'exibeNomeRow', input: 'inputNome', valor: 'valorNome', dica: null },
+        tel:  { row: 'exibeTelRow',  input: 'inputTel',  valor: 'valorTel',  dica: 'dicaTel' }
+    };
+
+    function editar(campo) {
+        const c   = campos[campo];
+        const inp = document.getElementById(c.input);
+        document.getElementById(c.row).style.display = 'none';
+        inp.value = campo === 'nome' ? (usuario.nome || '') : (localStorage.getItem('telefone') || '');
+        inp.style.display = 'block';
+        if (c.dica) document.getElementById(c.dica).style.display = 'block';
+        inp.focus();
+    }
+
+    function salvar(campo) {
+        const c   = campos[campo];
+        const inp = document.getElementById(c.input);
+        const val = inp.value.trim();
+
+        if (campo === 'nome') {
+            if (!val) { cancelar(campo); return; }
+            usuario.nome = val;
+            localStorage.setItem('usuario', JSON.stringify(usuario));
+        } else {
+            localStorage.setItem('telefone', val);
+        }
+
+        inp.style.display = 'none';
+        if (c.dica) document.getElementById(c.dica).style.display = 'none';
+        document.getElementById(c.row).style.display = 'flex';
+        renderizar();
+
+        document.getElementById('alertaPerfil').innerHTML =
+            '<div class="alert alert-success">Salvo com sucesso!</div>';
+        setTimeout(() => document.getElementById('alertaPerfil').innerHTML = '', 2000);
+    }
+
+    function cancelar(campo) {
+        const c = campos[campo];
+        document.getElementById(c.input).style.display = 'none';
+        if (c.dica) document.getElementById(c.dica).style.display = 'none';
+        document.getElementById(c.row).style.display = 'flex';
+    }
+
+    // Pets
+    async function carregarPets() {
+        const r = await fetch('/api/pets', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (r.status === 401) { localStorage.clear(); location.href = '/'; return; }
+        const pets = await r.json();
+        const el   = document.getElementById('listaPets');
+        if (!Array.isArray(pets) || !pets.length) {
+            el.innerHTML = '<p class="empty">Nenhum pet cadastrado ainda.</p>';
+            return;
+        }
+        el.innerHTML = pets.map(p => `
+            <div class="pet-row">
+                <div class="pet-icone ${p.especie === 'CACHORRO' ? 'c' : 'g'}">
+                    ${p.especie === 'CACHORRO' ? '🐶' : '🐱'}
+                </div>
+                <div class="pet-info">
+                    <strong>${p.nome}</strong>
+                    <span>${p.raca || p.especie} · ${p.sexo}${p.idadeEmMeses != null ? ' · ' + p.idadeEmMeses + ' meses' : ''}</span>
+                </div>
+                <span class="pet-badge ${p.castrado ? 'ok' : 'nao'}">
+                    ${p.castrado ? '✅ Castrado' : '⏳ Não castrado'}
+                </span>
+            </div>`).join('');
+    }
+
+    renderizar();
+    carregarPets();
+</script>
+</body>
+</html>
